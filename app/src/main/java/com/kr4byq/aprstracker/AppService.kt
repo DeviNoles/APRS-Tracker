@@ -1,7 +1,11 @@
 package com.kr4byq.aprstracker
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -61,11 +65,29 @@ requestLocationUpdates()
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    private fun createNotification() = NotificationCompat.Builder(this, "aprs_channel")
-        .setContentTitle("APRS Tracking Active!")
-        .setContentText("Sending location updates...")
-        .setSmallIcon(android.R.drawable.ic_menu_compass)
-        .build()
+    private fun createNotification(): Notification {
+        val channelId = "aprs_channel"
+        val channelName = "APRS Tracker"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_LOW
+            )
+
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(notificationChannel)
+        }
+
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle("APRS Tracking Active")
+            .setContentText("Sending location updates...")
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
 
     override fun onBind(intent: Intent?): IBinder? = null
 
