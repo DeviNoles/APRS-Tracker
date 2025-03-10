@@ -41,9 +41,13 @@ class MainActivity : AppCompatActivity() {
             Log.d("TAG", "STOP BUTTON CLICKED")
             stopService(Intent(this, AprsService::class.java))
         }
+        val mapButton = findViewById<Button>(R.id.mapButton)
+        mapButton.setOnClickListener {
+            startActivity(Intent(this, MapsActivity::class.java))
+        }
     }
 
-    // request location & foreground service permissions
+    //request location & foreground service permissions
     private fun checkAndRequestPermissions() {
         val permissions = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        class="com.google.android.gms.maps.SupportMapFragment"/>
+
+    <!-- Direction,bearing, road name,  -->
+    <TextView
+        android:id="@+id/roadNameText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Finding road..."
+        android:gravity="center"
+        android:background="@android:color/white"
+        android:textSize="18sp"
+        android:padding="10dp"
+        android:textStyle="bold"
+        android:elevation="4dp"
+        android:layout_alignParentBottom="true"/>
+
+
+    <TextView
+        android:id="@+id/speedBearingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Speed: -- mph | Bearing: --"
+        android:gravity="start"
+        android:textSize="18sp"
+        android:padding="8dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="60dp"/>
+
+</RelativeLayout>
