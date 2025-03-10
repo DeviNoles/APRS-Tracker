@@ -1,4 +1,4 @@
 To Do
-- [ ] Map View
+- [X] Map View
 - [ ] Save ping to RDS
 - [ ] GeoFence
