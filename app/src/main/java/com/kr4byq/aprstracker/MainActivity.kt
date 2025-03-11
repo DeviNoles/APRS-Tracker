@@ -64,6 +64,10 @@ class MainActivity : AppCompatActivity() {
         mapButton.setOnClickListener {
             startActivity(Intent(this, MapsActivity::class.java))
         }
+        val replayButton = findViewById<Button>(R.id.replayButton)
+        replayButton.setOnClickListener {
+            startActivity(Intent(this, MapsActivity::class.java))
+        }
     }
 
 
