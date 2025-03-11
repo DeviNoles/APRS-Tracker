@@ -1,7 +1,14 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+val localProperties = Properties()
+val localFile = rootProject.file("local.properties")
+if (localFile.exists()) {
+    localProperties.load(localFile.inputStream())
 }
 
 android {
@@ -14,11 +21,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "CALLSIGN", "\"${project.findProperty("CALLSIGN") ?: ""}\"")
-        buildConfigField("String", "PASSCODE", "\"${project.findProperty("PASSCODE") ?: ""}\"")
-        buildConfigField("String", "APRS_SERVER", "\"${project.findProperty("APRS_SERVER") ?: ""}\"")
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""}\"")
+        buildConfigField("String", "CALLSIGN", "\"${localProperties.getProperty("CALLSIGN") ?: ""}\"")
+        buildConfigField("String", "PASSCODE", "\"${localProperties.getProperty("PASSCODE") ?: ""}\"")
+        buildConfigField("String", "APRS_SERVER", "\"${localProperties.getProperty("APRS_SERVER") ?: ""}\"")
         buildConfigField("int", "APRS_PORT", "${project.findProperty("APRS_PORT") ?: 14580}")
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${project.findProperty("GOOGLE_MAPS_API_KEY")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

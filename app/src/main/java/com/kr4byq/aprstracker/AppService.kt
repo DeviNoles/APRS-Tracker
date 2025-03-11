@@ -8,6 +8,8 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import java.io.PrintWriter
 import java.net.Socket
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class AprsService : Service() {
@@ -21,19 +23,23 @@ class AprsService : Service() {
     private val aprsServer = BuildConfig.APRS_SERVER
     private val aprsPort = BuildConfig.APRS_PORT
 
-
     override fun onCreate() {
         super.onCreate()
-        Log.d("APRS", "Foreground service started!")
+
+        Log.d("APRS", aprsPort.toString())
+
+        Log.d("APRS", "✅ Foreground service started!")
         startForeground(1, createNotification())
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 30000) // Update every 30 seconds
-            .setMinUpdateDistanceMeters(1f)
-            .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-            .setWaitForAccurateLocation(true)
+        locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 30000)
+            .setMinUpdateDistanceMeters(1f) // Updates even if moved 1 meter
+            .setMinUpdateIntervalMillis(30000) // Force update every 30 sec
+            .setWaitForAccurateLocation(false) // Use best available location immediately
             .build()
+
+
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
@@ -54,19 +60,38 @@ class AprsService : Service() {
             }
         }
 
-
-
         requestLocationUpdates()
+
+
     }
 
     private fun requestLocationUpdates() {
         try {
             Log.d("APRS", "Requesting location updates...")
+
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, mainLooper)
+
+            val handler = android.os.Handler(mainLooper)
+            handler.postDelayed(object : Runnable {
+                override fun run() {
+                    Log.d("APRS", "Forcing location update and APRS packet...")
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        if (location != null) {
+                            val lat = location.latitude
+                            val lon = location.longitude
+                            val speed = location.speed
+                            val course = location.bearing
+                            sendAprsPacket(lat, lon, speed, course)
+                        }
+                    }
+                    handler.postDelayed(this, 30000)
+                }
+            }, 30000)
         } catch (e: SecurityException) {
             Log.e("APRS", "Location permission missing: ${e.message}")
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -88,13 +113,13 @@ class AprsService : Service() {
         val latitude = convertToAprsFormat(lat, true)
         val longitude = convertToAprsFormat(lon, false)
 
-        val speedMph = (speed * 2.23694).toInt().coerceAtLeast(1) // Convert from m/s to MPH
+        val timestamp = SimpleDateFormat("HHmmss'Z'", Locale.US).format(Date())
+
+        val speedKnots = (speed * 1.94384).toInt().coerceIn(1, 999)
         val courseInt = course.toInt().coerceIn(0, 360)
 
-        return "$callsign>APRS,TCPIP*:!$latitude/$longitude $speedMph MPH $courseInt° Testing app."
+        return "$callsign>APRS,TCPIP*:@$timestamp$latitude/$longitude>Sent from my Android"
     }
-
-
 
 
     private fun convertToAprsFormat(coord: Double, isLatitude: Boolean): String {
@@ -132,7 +157,7 @@ class AprsService : Service() {
     private fun sendAprsPacket(lat: Double, lon: Double, speed: Float, course: Float) {
         val hardcodedLat = 29.186302
         val hardcodedLon = -82.136217
-        val aprsMessage = formatAprsPacket(lat, lon, speed, course) // Using hardcoded coords
+        val aprsMessage = formatAprsPacket(hardcodedLat, hardcodedLon, speed, course) // Using hardcoded coords
 
         Thread {
             try {

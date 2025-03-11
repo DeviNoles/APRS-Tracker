@@ -70,12 +70,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                     val userLocation = LatLng(lat, lon)
 
-                    if (isFollowingUser) {
+                    if (isFollowingUser) { //todo not sure if this was working when i tried
                         val cameraPosition = CameraPosition.Builder()
                             .target(userLocation)
                             .zoom(18f)
                             .bearing(lastKnownBearing)
-                            .tilt(60f)
                             .build()
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
                     }
