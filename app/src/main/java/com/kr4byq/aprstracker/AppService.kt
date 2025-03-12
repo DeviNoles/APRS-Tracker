@@ -1,7 +1,11 @@
 package com.kr4byq.aprstracker
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -30,7 +34,8 @@ class AprsService : Service() {
 
         Log.d("APRS", aprsPort.toString())
 
-        Log.d("APRS", "✅ Foreground service started!")
+        createNotificationChannel()
+
         startForeground(1, createNotification())
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -68,6 +73,29 @@ class AprsService : Service() {
         requestLocationUpdates()
 
 
+    }
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "aws_channel",
+                "AWS Tracking",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Uploads GPS data to AWS"
+            }
+
+            val manager = getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+        }
+    }
+
+    private fun createNotification(): Notification {
+        return NotificationCompat.Builder(this, "aws_channel")
+            .setContentTitle("AWS Tracking Active")
+            .setContentText("Uploading location updates to AWS RDS...")
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
     }
 
     private fun requestLocationUpdates() {
@@ -117,14 +145,6 @@ class AprsService : Service() {
         Log.d("APRS", "cleanup done")
     }
 
-
-
-    private fun createNotification() = NotificationCompat.Builder(this, "aprs_channel")
-        .setContentTitle("APRS Tracking Active")
-        .setContentText("Sending location updates...")
-        .setSmallIcon(android.R.drawable.ic_menu_compass)
-        .build()
-
     override fun onBind(intent: Intent?): IBinder? = null
 
     private var lastSpeed: Float = 1f
@@ -173,7 +193,7 @@ class AprsService : Service() {
                 Log.d("APRS", "✅ Logged in to APRS-IS")
             }
         } catch (e: Exception) {
-            Log.e("APRS", "🚨 Connection error: ${e.message}")
+            Log.e("APRS", "Connection error: ${e.message}")
         }
     }
     private fun sendAprsPacket(lat: Double, lon: Double, speed: Float, course: Float) {
@@ -188,7 +208,7 @@ class AprsService : Service() {
                 aprsOutput?.let {
                     it.println(aprsMessage)
 
-                    Log.d("APRS", "✅ APRS Packet Sent: $aprsMessage")
+                    Log.d("APRS", "APRS Packet Sent: $aprsMessage")
 
                 } ?: Log.e("APRS", "🚨 APRS output stream is null!")
             } catch (e: Exception) {
