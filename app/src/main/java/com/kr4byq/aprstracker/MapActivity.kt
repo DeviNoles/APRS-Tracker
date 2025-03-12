@@ -48,9 +48,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         //  blue dot
         mMap.isMyLocationEnabled = true
 
-        mMap.setOnCameraMoveListener {
-            isFollowingUser = false // stop camera when map moved
-        }
 
         startLocationUpdates()
     }
@@ -69,15 +66,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     lastKnownSpeed = location.speed // m/s
 
                     val userLocation = LatLng(lat, lon)
-
-                    if (isFollowingUser) { //todo not sure if this was working when i tried
+                    
                         val cameraPosition = CameraPosition.Builder()
                             .target(userLocation)
                             .zoom(18f)
                             .bearing(lastKnownBearing)
                             .build()
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-                    }
 
                     updateUI()
                     updateRoadInfo(lat, lon)

@@ -23,18 +23,67 @@
         android:elevation="4dp"
         android:layout_alignParentBottom="true"/>
 
-
-    <TextView
-        android:id="@+id/speedBearingText"
+    <Button
+        android:id="@+id/startButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Speed: -- mph | Bearing: --"
         android:gravity="start"
         android:textSize="18sp"
         android:padding="8dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="60dp"/>
+        android:layout_marginBottom="60dp"
+        android:text="Start APRS" />
+
+    <Button
+        android:id="@+id/stopButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:textSize="18sp"
+        android:padding="8dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="100dp"
+        android:text="Stop APRS" />
+    <Button
+        android:id="@+id/startGPSButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:textSize="18sp"
+        android:padding="8dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="140dp"
+        android:text="Start GPS" />
+
+    <Button
+        android:id="@+id/stopGPSButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:textSize="18sp"
+        android:padding="8dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="180dp"
+        android:text="Stop GPS" />
+    <TextView
+        android:id="@+id/speedBearingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Speed: -- mph | Bearing: --"
+        android:gravity="end"
+        android:textSize="18sp"
+        android:padding="8dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="225dp"/>
 
 </RelativeLayout>
