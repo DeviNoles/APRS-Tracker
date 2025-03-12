@@ -42,13 +42,14 @@ class MainActivity : AppCompatActivity() {
         stopButton.setOnClickListener {
             Log.d("TAG", "STOP BUTTON CLICKED")
             stopService(Intent(this, AprsService::class.java))
+
         }
 
         startGPSButton.setOnClickListener {
             Log.d("TAG", "START GPS BUTTON CLICKED")
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//                val serviceIntent = Intent(this, AprsService::class.java)
-//                startForegroundService(serviceIntent)
+                val serviceIntent = Intent(this, AwsService::class.java)
+                startForegroundService(serviceIntent)
             } else {
                 Log.e("TAG", "Permissions not granted!")
                 Toast.makeText(this, "Grant location permissions!", Toast.LENGTH_SHORT).show()
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         stopGPSButton.setOnClickListener {
             Log.d("TAG", "STOP GPS BUTTON CLICKED")
-            stopService(Intent(this, AprsService::class.java))
+            stopService(Intent(this, AwsService::class.java))
         }
 
         val mapButton = findViewById<Button>(R.id.mapButton)

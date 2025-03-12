@@ -25,6 +25,8 @@ android {
         buildConfigField("String", "CALLSIGN", "\"${localProperties.getProperty("CALLSIGN") ?: ""}\"")
         buildConfigField("String", "PASSCODE", "\"${localProperties.getProperty("PASSCODE") ?: ""}\"")
         buildConfigField("String", "APRS_SERVER", "\"${localProperties.getProperty("APRS_SERVER") ?: ""}\"")
+        buildConfigField("String", "API_GATEWAY_URL", "\"${localProperties.getProperty("API_GATEWAY_URL") ?: ""}\"")
+
         buildConfigField("int", "APRS_PORT", "${project.findProperty("APRS_PORT") ?: 14580}")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

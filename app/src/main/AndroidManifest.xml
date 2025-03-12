@@ -28,7 +28,11 @@
             android:foregroundServiceType="location"
             android:permission="android.permission.FOREGROUND_SERVICE"
             android:exported="false"/>
-
+        <service
+            android:name=".AwsService"
+            android:foregroundServiceType="location"
+            android:permission="android.permission.FOREGROUND_SERVICE"
+            android:exported="false"/>
         <activity android:name=".MapsActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light"/>

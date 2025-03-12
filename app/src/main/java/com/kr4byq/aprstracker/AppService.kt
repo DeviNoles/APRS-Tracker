@@ -3,6 +3,7 @@ package com.kr4byq.aprstracker
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
@@ -22,6 +23,7 @@ class AprsService : Service() {
     private val passcode = BuildConfig.PASSCODE
     private val aprsServer = BuildConfig.APRS_SERVER
     private val aprsPort = BuildConfig.APRS_PORT
+    private val handler = android.os.Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -34,9 +36,10 @@ class AprsService : Service() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 30000)
-            .setMinUpdateDistanceMeters(1f) // Updates even if moved 1 meter
-            .setMinUpdateIntervalMillis(30000) // Force update every 30 sec
-            .setWaitForAccurateLocation(false) // Use best available location immediately
+            .setMinUpdateDistanceMeters(1f)
+
+            .setMinUpdateIntervalMillis(30000)
+            .setWaitForAccurateLocation(false)
             .build()
 
 
@@ -45,8 +48,10 @@ class AprsService : Service() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
                     val lat = location.latitude
+
                     val lon = location.longitude
                     var speed = location.speed
+
                     var course = location.bearing
 
                     // if speed or course are 0 assume last values
@@ -67,14 +72,13 @@ class AprsService : Service() {
 
     private fun requestLocationUpdates() {
         try {
-            Log.d("APRS", "Requesting location updates...")
+            Log.d("APRS", "Requesting location updates.,")
 
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, mainLooper)
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
 
-            val handler = android.os.Handler(mainLooper)
             handler.postDelayed(object : Runnable {
                 override fun run() {
-                    Log.d("APRS", "Forcing location update and APRS packet...")
+                    Log.d("APRS", "forcing location update and APRS packet.")
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         if (location != null) {
                             val lat = location.latitude
@@ -87,16 +91,33 @@ class AprsService : Service() {
                     handler.postDelayed(this, 30000)
                 }
             }, 30000)
+
         } catch (e: SecurityException) {
-            Log.e("APRS", "Location permission missing: ${e.message}")
+            Log.e("APRS", "Location permission missing ${e.message}")
         }
     }
 
 
+
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("APRS", "🚨 AprsService stopped!🚨")
         fusedLocationClient.removeLocationUpdates(locationCallback)
+        aprsOutput?.close()
+        aprsSocket?.close()
+        aprsOutput = null
+        aprsSocket = null
+        stopForeground(true)
+
+        // STOP HANDLER LOOP 🚨
+        handler.removeCallbacksAndMessages(null)
+
+        stopSelf()
+
+        Log.d("APRS", "cleanup done")
     }
+
+
 
     private fun createNotification() = NotificationCompat.Builder(this, "aprs_channel")
         .setContentTitle("APRS Tracking Active")
@@ -144,6 +165,7 @@ class AprsService : Service() {
             if (aprsSocket == null || aprsSocket!!.isClosed) {
                 Log.d("APRS", "Opening new APRS-IS connection...")
                 aprsSocket = Socket(aprsServer, aprsPort)
+
                 aprsOutput = PrintWriter(aprsSocket!!.getOutputStream(), true)
 
                 // login  ONCE
@@ -156,6 +178,7 @@ class AprsService : Service() {
     }
     private fun sendAprsPacket(lat: Double, lon: Double, speed: Float, course: Float) {
         val hardcodedLat = 29.186302
+
         val hardcodedLon = -82.136217
         val aprsMessage = formatAprsPacket(hardcodedLat, hardcodedLon, speed, course) // Using hardcoded coords
 
@@ -164,7 +187,9 @@ class AprsService : Service() {
                 connectToAprs() // make sure connection active before sending packet
                 aprsOutput?.let {
                     it.println(aprsMessage)
+
                     Log.d("APRS", "✅ APRS Packet Sent: $aprsMessage")
+
                 } ?: Log.e("APRS", "🚨 APRS output stream is null!")
             } catch (e: Exception) {
                 Log.e("APRS", "🚨 Error sending APRS Packet: ${e.message}")
