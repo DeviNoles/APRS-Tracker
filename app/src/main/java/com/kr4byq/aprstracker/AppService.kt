@@ -200,7 +200,7 @@ class AprsService : Service() {
         val hardcodedLat = 29.186302
 
         val hardcodedLon = -82.136217
-        val aprsMessage = formatAprsPacket(hardcodedLat, hardcodedLon, speed, course) // Using hardcoded coords
+        val aprsMessage = formatAprsPacket(lat, lon, speed, course) // Using hardcoded coords
 
         Thread {
             try {

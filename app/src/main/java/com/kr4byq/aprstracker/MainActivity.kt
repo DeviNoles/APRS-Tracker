@@ -18,6 +18,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val intent = Intent(this, MapsActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        return // TODO temp fix have to debug android manifest.xml bc mapsactivity isn't getting called at launch :/
         setContentView(R.layout.activity_main)
         Log.d("TAG", "MAINACTIVITY INIT")
 
