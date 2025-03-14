@@ -29,6 +29,8 @@
 - Haversine distance calculation to target
 - Update APRS message in real time with distance to destination
 
+![aprs.fi-trail-screenshot](https://github.com/user-attachments/assets/c6cb7868-5737-444b-8e45-e362b86df016)
+
 ## Technical Implementation
 
 ### Key Components
@@ -54,5 +56,16 @@
 - Eerror handling and reconnection
 - Configurable BuildConfig parameters
 
-![aprs.fi-trail-screenshot](https://github.com/user-attachments/assets/c6cb7868-5737-444b-8e45-e362b86df016)
+### Future Enhancements
+
+- Implement RF APRS transmission
+- Add historical track visualization and playback
+- Create user-defined symbols and improve custom status UX
+- Add more columns and data to AWS RDS
+- Implement two-way messaging via APRS messaging
+- GeoFences for automatic start / stop tracking
+- Smart Beaconing for better battery consumption
+  
+### Contributing
+Contributions are welcome. Feel free to submit a PR.
 
