@@ -17,6 +17,7 @@ import java.net.Socket
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.*
 
 class AprsService : Service() {
 
@@ -29,7 +30,9 @@ class AprsService : Service() {
     private val aprsServer = BuildConfig.APRS_SERVER
     private val aprsPort = BuildConfig.APRS_PORT
     private val handler = android.os.Handler(Looper.getMainLooper())
-    private var searchLocation = ""
+    private var searchLat = 0.00
+    private var searchLon = 0.00
+    private var destinationMode = false
     override fun onCreate() {
         super.onCreate()
         Log.d("APRS", aprsPort.toString())
@@ -75,9 +78,15 @@ class AprsService : Service() {
 
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        searchLocation = intent?.getStringExtra("searchLocation") ?: "No location"
+        searchLat = intent?.getDoubleExtra("searchLat", 0.00) ?: 0.00
+        searchLon = intent?.getDoubleExtra("searchLon", 0.00) ?: 0.00
 
-        Log.d("AprsService", "onStartCommand-searchLocation:$searchLocation")
+        destinationMode = intent?.getBooleanExtra("destinationMode", false) ?: false
+
+        Log.d("AprsService", "onStartCommand-searchLocation:$searchLat")
+        Log.d("AprsService", "onStartCommand-searchLocation:$searchLon")
+
+        Log.d("AprsService", "onStartCommand-destinationMode:$destinationMode")
 
         return START_STICKY
     }
@@ -166,8 +175,31 @@ class AprsService : Service() {
 
         val speedKnots = (speed * 1.94384).toInt().coerceIn(1, 999)
         val courseInt = course.toInt().coerceIn(0, 360)
+        if(destinationMode){
+            Log.d("GPS", searchLat.toString())
+            Log.d("GPS", searchLon.toString())
+            val distance = haversine(lat, lon, searchLat, searchLon)
+            Log.d("GPS", "https://kr4byq.com - " + distance.toString() + " miles from destination.") //TODO swap this to next line when ready.
 
-        return "$callsign>APRS,TCPIP*:@$timestamp$latitude/$longitude>Sent from my Android"
+            return "$callsign>APRS,TCPIP*:@$timestamp$latitude/$longitude>Sent from my Android"
+
+        }
+        else{
+            return "$callsign>APRS,TCPIP*:@$timestamp$latitude/$longitude>Sent from my Android"
+        }
+    }
+    private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val eR = 6371000.0 // earth radiuus (m)
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+
+        val a = sin(dLat / 2).pow(2) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        val distanceMeters = eR * c
+        val distanceMiles = distanceMeters / 1609.344 // to miles
+
+        return "%.1f".format(distanceMiles).toDouble() // round
     }
 
 

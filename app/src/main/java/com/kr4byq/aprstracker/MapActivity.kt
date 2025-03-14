@@ -46,6 +46,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var isFollowingUser = true
     private var destinationMode = false
     private var searchLocation = ""
+    private var searchLat = 0.00
+    private var searchLon = 0.00
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -61,9 +63,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             Log.d("TAG", "START BUTTON CLICKED")
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 val serviceIntent = Intent(this, AprsService::class.java).apply {
-                    putExtra("searchLocation", searchLocation)
+                    putExtra("searchLat", searchLat)
+                    putExtra("searchLon", searchLon)
                     putExtra("destinationMode", destinationMode)
-
                 }
                 startForegroundService(serviceIntent)
                 Toast.makeText(this, "🚨🚨🚨 APRS STARTED 🚨🚨🚨", Toast.LENGTH_SHORT).show()
@@ -157,9 +159,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     private fun isLatLng(input: String): Boolean {
         // (lat, lon) || lat, lon format
-        val regex = """(\()?[-+]?[0-9]*\.?[0-9]+\s*,\s*[-+]?[0-9]*\.?[0-9]+(\))?""".toRegex()
-        Log.d("GPS", regex.matches(input).toString())
-        return regex.matches(input)
+        val regex = """(\()?(?<lat>[-+]?[0-9]*\.?[0-9]+)\s*,\s*(?<lon>[-+]?[0-9]*\.?[0-9]+)(\))?""".toRegex()
+
+        val matchResult = regex.find(input) ?: return false
+
+        val lat = matchResult.groups["lat"]?.value?.toDoubleOrNull()
+        val lon = matchResult.groups["lon"]?.value?.toDoubleOrNull()
+
+        if (lat != null && lon != null) {
+            Log.d("GPS", "Latitude: $lat, Longitude: $lon")
+            searchLat = lat
+            searchLon = lon
+            return true
+        }
+
+        return false
     }
     private fun setupLocationUpdates() {
         locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000) //*update 1 sec
