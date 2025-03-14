@@ -2,6 +2,8 @@ package com.kr4byq.aprstracker
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Address
@@ -10,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,10 +21,18 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
+
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteActivity
+
 import java.util.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-    private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    val LOCATION_PERMISSION_REQUEST_CODE = 1
+    val AUTOCOMPLETE_REQUEST_CODE = 1
+
+    private val locationHistory = mutableListOf<LatLng>()
+    private var polyline: Polyline? = null
 
     private lateinit var mMap: GoogleMap
     private lateinit var roadNameTextView: TextView
@@ -33,7 +44,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var lastKnownBearing: Float = 0f
     private var lastKnownSpeed: Float = 0f
     private var isFollowingUser = true
-
+    private var destinationMode = false
+    private var searchLocation = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -48,36 +60,59 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         startButton.setOnClickListener {
             Log.d("TAG", "START BUTTON CLICKED")
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                val serviceIntent = Intent(this, AprsService::class.java)
+                val serviceIntent = Intent(this, AprsService::class.java).apply {
+                    putExtra("searchLocation", searchLocation)
+                    putExtra("destinationMode", destinationMode)
+
+                }
                 startForegroundService(serviceIntent)
+                Toast.makeText(this, "🚨🚨🚨 APRS STARTED 🚨🚨🚨", Toast.LENGTH_SHORT).show()
+
             } else {
                 Log.e("TAG", "Permissions not granted!")
-                Toast.makeText(this, "Grant location permissions!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Location not granted", Toast.LENGTH_SHORT).show()
             }
         }
 
         stopButton.setOnClickListener {
-            Log.d("TAG", "STOP BUTTON CLICKED")
+            Toast.makeText(this, "✅ APRS STOPPED", Toast.LENGTH_SHORT).show()
             stopService(Intent(this, AprsService::class.java))
 
         }
         startGPSButton.setOnClickListener {
-            Log.d("TAG", "START GPS BUTTON CLICKED")
+            Toast.makeText(this, "🚨 GPS STARTED 🚨", Toast.LENGTH_SHORT).show()
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 val serviceIntent = Intent(this, AwsService::class.java)
                 startForegroundService(serviceIntent)
             } else {
                 Log.e("TAG", "Permissions not granted!")
-                Toast.makeText(this, "Grant location permissions!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Location not granted", Toast.LENGTH_SHORT).show()
             }
         }
 
         stopGPSButton.setOnClickListener {
-            Log.d("TAG", "STOP GPS BUTTON CLICKED")
+            Toast.makeText(this, "✅ GPS STOPPED", Toast.LENGTH_SHORT).show()
             stopService(Intent(this, AwsService::class.java))
         }
+        val searchInput = findViewById<EditText>(R.id.searchBox)
+        val searchButton = findViewById<Button>(R.id.searchButton)
 
-
+        searchButton.setOnClickListener {
+            searchLocation = searchInput.text.toString().trim()
+            Log.d("GPS", searchLocation)
+            if (isLatLng(searchLocation)) {
+                destinationMode = true
+                AlertDialog.Builder(this)
+                    .setTitle("Valid location")
+                    .setMessage(searchLocation)
+                    .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                    .show()
+            }
+            else {
+                destinationMode = false
+                Toast.makeText(this, "Invalid location", Toast.LENGTH_SHORT).show()
+            }
+        }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -97,10 +132,38 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         startLocationUpdates()
     }
-
+    private fun drawTrail() { //TODO test this
+        polyline?.remove()
+        polyline = mMap.addPolyline(
+            PolylineOptions()
+                .addAll(locationHistory)
+                .color(ContextCompat.getColor(this, R.color.black))
+                .width(5f)
+        )
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                val place = Autocomplete.getPlaceFromIntent(data!!)
+                val latLng = place.latLng
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                mMap.addMarker(MarkerOptions().position(latLng).title(place.name))
+            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                val status = Autocomplete.getStatusFromIntent(data!!)
+                Log.e("MapsActivity", "Error: ${status.statusMessage}")
+            }
+        }
+    }
+    private fun isLatLng(input: String): Boolean {
+        // (lat, lon) || lat, lon format
+        val regex = """(\()?[-+]?[0-9]*\.?[0-9]+\s*,\s*[-+]?[0-9]*\.?[0-9]+(\))?""".toRegex()
+        Log.d("GPS", regex.matches(input).toString())
+        return regex.matches(input)
+    }
     private fun setupLocationUpdates() {
         locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000) //*update 1 sec
-            .setMinUpdateDistanceMeters(5f) //moved>5m updates every 1 sec or move 5m< whichever comes first
+            .setMinUpdateDistanceMeters(5f) //moved>5m updates evvery 1 sec or move 5m< whichever comes first
             .build()
 
         locationCallback = object : LocationCallback() {
@@ -109,21 +172,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val lat = location.latitude
                     val lon = location.longitude
                     lastKnownBearing = location.bearing
-                    lastKnownSpeed = location.speed // m/s
+                    lastKnownSpeed = location.speed
 
                     val userLocation = LatLng(lat, lon)
+                    locationHistory.add(userLocation)
 
-                        val cameraPosition = CameraPosition.Builder()
-                            .target(userLocation)
-                            .zoom(18f)
-                            .bearing(lastKnownBearing)
-                            .build()
-                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+                    val cameraPosition = CameraPosition.Builder()
+                        .target(userLocation)
+                        .zoom(18f)
+                        .bearing(lastKnownBearing)
+                        .build()
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+
+                    drawTrail()
 
                     updateUI()
                     updateRoadInfo(lat, lon)
                 }
             }
+
         }
     }
     private fun getOrSetPermissions() {

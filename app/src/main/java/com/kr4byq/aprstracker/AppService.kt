@@ -1,5 +1,6 @@
 package com.kr4byq.aprstracker
 
+import android.app.Application
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -28,10 +29,9 @@ class AprsService : Service() {
     private val aprsServer = BuildConfig.APRS_SERVER
     private val aprsPort = BuildConfig.APRS_PORT
     private val handler = android.os.Handler(Looper.getMainLooper())
-
+    private var searchLocation = ""
     override fun onCreate() {
         super.onCreate()
-
         Log.d("APRS", aprsPort.toString())
 
         createNotificationChannel()
@@ -74,6 +74,14 @@ class AprsService : Service() {
 
 
     }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        searchLocation = intent?.getStringExtra("searchLocation") ?: "No location"
+
+        Log.d("AprsService", "onStartCommand-searchLocation:$searchLocation")
+
+        return START_STICKY
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -197,9 +205,7 @@ class AprsService : Service() {
         }
     }
     private fun sendAprsPacket(lat: Double, lon: Double, speed: Float, course: Float) {
-        val hardcodedLat = 29.186302
 
-        val hardcodedLon = -82.136217
         val aprsMessage = formatAprsPacket(lat, lon, speed, course) // Using hardcoded coords
 
         Thread {

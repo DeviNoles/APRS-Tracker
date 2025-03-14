@@ -74,4 +74,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation (libs.play.services.maps.v1820)
+    implementation (libs.places)
 }
