@@ -1,28 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <circle cx="96" cy="96" r="88" fill="#34A853" />
-  <circle cx="96" cy="96" r="80" fill="#FFFFFF" />
-  
-  <g transform="translate(44, 46) scale(0.7)">
-    <path fill="#34A853" d="M151.025 85.224q-.071-.464-.147-.92a75.665 75.665 0 0 0-7.546-22.597 76.5 76.5 0 0 0-5.511-8.995 76 76 0 0 0-8.322-9.808a76.034 76.034 0 0 0-13.398-10.626q.042-.074.085-.148 2.286-3.948 4.572-7.897l4.47-7.712a3946 3946 0 0 0 3.208-5.54q.38-.658.604-1.355a6.97 6.97 0 0 0-.652-5.702 6.9 6.9 0 0 0-2.406-2.398 7 7 0 0 0-2.954-.95 7 7 0 0 0-2.376.206 6.93 6.93 0 0 0-4.22 3.227q-1.606 2.77-3.208 5.54l-4.47 7.712c-1.523 2.634-3.05 5.263-4.573 7.897q-.25.43-.5.865c-.232-.092-.46-.184-.692-.272-8.398-3.205-17.511-4.958-27.036-4.958q-.39-.001-.78.004A75.7 75.7 0 0 0 50.977 25q-1.317.46-2.608.968-.234-.404-.467-.806-2.286-3.95-4.573-7.897l-4.47-7.713a4385 4385 0 0 1-3.208-5.54A6.93 6.93 0 0 0 29.055.58a6.9 6.9 0 0 0-2.954.95 6.92 6.92 0 0 0-3.157 4.185 6.96 6.96 0 0 0 .703 5.27l3.208 5.54 4.47 7.713c1.523 2.634 3.05 5.263 4.573 7.897.01.022.025.044.036.066a76.3 76.3 0 0 0-13.527 10.711 76.5 76.5 0 0 0-8.322 9.808 75.4 75.4 0 0 0-5.51 8.995 75.7 75.7 0 0 0-7.546 22.597 76.038 76.038 0 0 0-.581 4.247h151a77 77 0 0 0-.434-3.327z"/>
-    <path fill="#202124" d="M115.225 67.663c3.022-2.012 3.461-6.668.981-10.4-2.48-3.73-6.939-5.123-9.96-3.11-3.021 2.012-3.46 6.668-.98 10.4 2.479 3.73 6.938 5.123 9.959 3.11M46.762 64.564c2.48-3.73 2.04-8.387-.98-10.4-3.022-2.012-7.481-.619-9.96 3.112s-2.041 8.387.98 10.4 7.48.62 9.96-3.112"/>
-  </g>
-  
-  <line x1="86" y1="46" x2="80" y2="34" stroke="#34A853" stroke-width="3" stroke-linecap="round" />
-  <line x1="106" y1="46" x2="112" y2="34" stroke="#34A853" stroke-width="3" stroke-linecap="round" />
-  <circle cx="80" cy="32" r="4" fill="#34A853" />
-  <circle cx="112" cy="32" r="4" fill="#34A853" />
-  
-  <path d="M96 118 C88 118 82 124 82 132 C82 144 96 156 96 156 C96 156 110 144 110 132 C110 124 104 118 96 118 Z" fill="#EA4335" />
-  <circle cx="96" cy="128" r="5" fill="white" />
-</svg>
+# Android GPS Tracking with APRS Integration
 
 ![aprs-gps-app-icon](https://github.com/user-attachments/assets/7dafb3e9-38ac-493c-b762-5e121c57bdc3)
+## An Android application that combines modern GPS tracking capabilities with the Amateur Position Reporting System (APRS) network.
+- #### Track and visualize their real-time location on Google Maps
+- #### Transmit custom messages to APRS-IS network
+- ####  Navigate to specified coordinates with distance reporting to APRS network
 
-![aprs1](https://github.com/user-attachments/assets/c6cb7868-5737-444b-8e45-e362b86df016)
+### Location Tracking & Visualization
+- Live GPS location tracking with Google Maps integration
+- Real-time speed, bearing, and road name display
+- Trail visualization shows live tracking
+- Direction determination based on bearing
 
+### APRS Integration
+- Automatic connection to APRS-IS servers
+- Standard-compliant APRS packet formatting
+- Configurable update intervals
+- TCP/IP APRS-IS authentication & communication
+- Custom APRS network message
+  
+### AWS Cloud Integration
+- API Gateway REST API
+- JSON-based position passed to Lambda
+- Real-time data updates to AWS RDS
 
-To Do
-- [X] Map View
-- [X] Save ping to RDS
-- [ ] GeoFence
-- [ ] Broadcast receiver to cut down GPS calls
+### Navigation Capabilities
+- Support for destination coordinates via text input
+- Haversine distance calculation to target
+- Update APRS message in real time with distance to destination
+
+## Technical Implementation
+
+### Key Components
+
+- **`AprsService`**: Manages APRS packet creation + transmission
+- **`AwsService`**: Handles AWS API communication & data persistence
+- **`MapsActivity`**: Controls the user interface & map visualization
+- **`LocationRequest`**: Configures high-precision location updates
+
+### Core Technologies
+
+- **Kotlin**: 100% Kotlin usage with modern language standards implemented
+- **Android Location Services**: FusedLocationProvider consumes battery efficiently
+- **Google Maps SDK**: Live mapping & visualization
+- **Foreground Services**: Background operations
+- **OkHttp**: HTTP client for API communication
+- **APRS Protocol**: Standards compliant implementation for APRS radio network integration
+
+### Architecture Features
+
+- Modular UI, location services, and data transmission
+- Efficient background processing & proper lifecycle management
+- Eerror handling and reconnection
+- Configurable BuildConfig parameters
+
+![aprs.fi-trail-screenshot](https://github.com/user-attachments/assets/c6cb7868-5737-444b-8e45-e362b86df016)
+
