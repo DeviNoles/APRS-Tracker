@@ -48,53 +48,77 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var searchLocation = ""
     private var searchLat = 0.00
     private var searchLon = 0.00
+    private var isAPRSActive = false
+    private var isRDSActive = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         getOrSetPermissions()
 
         val startButton = findViewById<Button>(R.id.startButton)
-        val stopButton = findViewById<Button>(R.id.stopButton)
         val startGPSButton = findViewById<Button>(R.id.startGPSButton)
-        val stopGPSButton = findViewById<Button>(R.id.stopGPSButton)
         roadNameTextView = findViewById(R.id.roadNameText)
         speedBearingTextView = findViewById(R.id.speedBearingText)
-        startButton.setOnClickListener {
+        startButton.setOnClickListener { //TODO make start aprs and start rds 1 button each
             Log.d("TAG", "START BUTTON CLICKED")
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                val serviceIntent = Intent(this, AprsService::class.java).apply {
-                    putExtra("searchLat", searchLat)
-                    putExtra("searchLon", searchLon)
-                    putExtra("destinationMode", destinationMode)
+            if(!isAPRSActive){ //if isaprsactive IS FALSE
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    val serviceIntent = Intent(this, AprsService::class.java).apply {
+                        putExtra("searchLat", searchLat)
+                        putExtra("searchLon", searchLon)
+                        putExtra("destinationMode", destinationMode)
+                    }
+                    startForegroundService(serviceIntent)
+
+                    Toast.makeText(this, "🚨🚨🚨 APRS STARTED 🚨🚨🚨", Toast.LENGTH_SHORT).show()
+                    startButton.text = "Stop APRS"
+
+                    isAPRSActive = true
+
+                } else {
+                    Log.e("TAG", "Permissions not granted!")
+                    startButton.text = "Start APRS"
+
+                    Toast.makeText(this, "Location not granted", Toast.LENGTH_SHORT).show()
+                    isAPRSActive = false
                 }
-                startForegroundService(serviceIntent)
-                Toast.makeText(this, "🚨🚨🚨 APRS STARTED 🚨🚨🚨", Toast.LENGTH_SHORT).show()
-
-            } else {
-                Log.e("TAG", "Permissions not granted!")
-                Toast.makeText(this, "Location not granted", Toast.LENGTH_SHORT).show()
             }
+            else{ // isAPRSActive is ON therefore turn it off
+                stopService(Intent(this, AprsService::class.java))
+                startButton.text = "Start APRS"
+                Toast.makeText(this, "✅✅✅ APRS STOPPED ✅✅✅", Toast.LENGTH_SHORT).show()
+                isAPRSActive = false
+
+            }
+
         }
 
-        stopButton.setOnClickListener {
-            Toast.makeText(this, "✅ APRS STOPPED", Toast.LENGTH_SHORT).show()
-            stopService(Intent(this, AprsService::class.java))
-
-        }
         startGPSButton.setOnClickListener {
-            Toast.makeText(this, "🚨 GPS STARTED 🚨", Toast.LENGTH_SHORT).show()
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                val serviceIntent = Intent(this, AwsService::class.java)
-                startForegroundService(serviceIntent)
-            } else {
-                Log.e("TAG", "Permissions not granted!")
-                Toast.makeText(this, "Location not granted", Toast.LENGTH_SHORT).show()
-            }
-        }
+            if(!isRDSActive) {
+                Toast.makeText(this, "🚨 GPS STARTED 🚨", Toast.LENGTH_SHORT).show()
+                if (ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    val serviceIntent = Intent(this, AwsService::class.java)
+                    startForegroundService(serviceIntent)
+                } else {
+                    Log.e("TAG", "Permissions not granted!")
+                    Toast.makeText(this, "Location not granted", Toast.LENGTH_SHORT).show()
+                }
+                startGPSButton.text = "Stop GPS"
 
-        stopGPSButton.setOnClickListener {
-            Toast.makeText(this, "✅ GPS STOPPED", Toast.LENGTH_SHORT).show()
-            stopService(Intent(this, AwsService::class.java))
+                isRDSActive = true
+
+            }
+            else{
+                Toast.makeText(this, "✅ GPS STOPPED", Toast.LENGTH_SHORT).show()
+                stopService(Intent(this, AwsService::class.java))
+                startGPSButton.text = "Start GPS"
+
+                isRDSActive = false
+            }
         }
         val searchInput = findViewById<EditText>(R.id.searchBox)
         val searchButton = findViewById<Button>(R.id.searchButton)
@@ -198,7 +222,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         .build()
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
 
-                    drawTrail()
+                    drawTrail() //TODO update this to only draw when APRS is active
 
                     updateUI()
                     updateRoadInfo(lat, lon)
