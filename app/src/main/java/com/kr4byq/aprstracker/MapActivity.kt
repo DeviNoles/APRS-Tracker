@@ -59,7 +59,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val startGPSButton = findViewById<Button>(R.id.startGPSButton)
         roadNameTextView = findViewById(R.id.roadNameText)
         speedBearingTextView = findViewById(R.id.speedBearingText)
-        startButton.setOnClickListener { //TODO make start aprs and start rds 1 button each
+        startButton.setOnClickListener {
             Log.d("TAG", "START BUTTON CLICKED")
             if(!isAPRSActive){ //if isaprsactive IS FALSE
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -158,13 +158,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         startLocationUpdates()
     }
-    private fun drawTrail() { //TODO test this
+    private fun drawTrail() {
         polyline?.remove()
         polyline = mMap.addPolyline(
             PolylineOptions()
                 .addAll(locationHistory)
                 .color(ContextCompat.getColor(this, R.color.black))
-                .width(5f)
+                .width(10f)
         )
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -222,7 +222,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         .build()
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
 
-                    drawTrail() //TODO update this to only draw when APRS is active
+                    if(isAPRSActive==true){
+                        drawTrail() //TODO see if this works
+
+                    }
 
                     updateUI()
                     updateRoadInfo(lat, lon)
