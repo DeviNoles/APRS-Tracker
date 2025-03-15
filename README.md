@@ -58,7 +58,8 @@
 
 ### Future Enhancements
 
-- Implement RF APRS transmission
+- Option to store images from trips
+- Implement RF APRS transmission capability with Bluetooth
 - Add historical track visualization and playback
 - Create user-defined symbols and improve custom status UX
 - Add more columns and data to AWS RDS
