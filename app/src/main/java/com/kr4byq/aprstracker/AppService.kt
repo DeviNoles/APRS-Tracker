@@ -179,9 +179,9 @@ class AprsService : Service() {
             Log.d("GPS", searchLat.toString())
             Log.d("GPS", searchLon.toString())
             val distance = haversine(lat, lon, searchLat, searchLon)
-            Log.d("GPS", "https://kr4byq.com - " + distance.toString() + " miles from destination.") //TODO swap this to next line when ready.
-
-            return "$callsign>APRS,TCPIP*:@$timestamp$latitude/$longitude>Sent from my Android"
+            Log.d("GPS", distance.toString() + " miles from destination.") //TODO swap this to next line when ready.
+            val destinationMessage = distance.toString() + " miles from destination."
+            return "$callsign>APRS,TCPIP*:@$timestamp$latitude/$longitude>$destinationMessage"
 
         }
         else{
@@ -199,7 +199,7 @@ class AprsService : Service() {
         val distanceMeters = eR * c
         val distanceMiles = distanceMeters / 1609.344 // to miles
 
-        return "%.1f".format(distanceMiles).toDouble() // round
+        return (Math.round(distanceMiles * 10) / 10.0)
     }
 
 
